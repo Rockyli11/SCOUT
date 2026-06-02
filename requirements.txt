@@ -1,0 +1,10 @@
+huggingface_hub>=0.24.0
+accelerate>=0.33.0
+numpy>=1.26.0
+openai>=1.40.0
+scikit-learn>=1.4.0
+sentence-transformers>=3.0.0
+torch>=2.2.0
+transformers>=4.44.0
+vllm>=0.6.0
+xgboost>=2.0.0

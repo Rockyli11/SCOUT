@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from scout_router.config import ScoutConfig
@@ -11,11 +12,17 @@ from scout_router.detectors.base import DetectorBase
 from scout_router.predictor import create_predictor
 from scout_router.retrieval import AnchorRetriever, AnchorStats
 from scout_router.router import route_min_agreement_pred_skip
-from scout_router.schema import DetectorResult, PromptSample, RuntimeDetectorRow, normalize_label_text
+from scout_router.schema import (
+    DetectorResult,
+    PromptSample,
+    RouteDecision,
+    RuntimeDetectorRow,
+    normalize_label_text,
+)
 
 
 class ScoutPipeline:
-    """Run cheap detectors, predictor, router, and optional D6 escalation."""
+    """Run predictor-selected cheap detectors, router, and optional D6 escalation."""
 
     def __init__(
         self,
@@ -74,6 +81,52 @@ class ScoutPipeline:
             )
         return self.predictor.predict(sample, cheap_results, anchors, candidate_detectors)
 
+    def _require_predictor_estimates(self, estimates: dict[str, Any], candidate_detectors: list[str]) -> None:
+        for detector_name in candidate_detectors:
+            if detector_name not in estimates:
+                raise RuntimeError(f"predictor omitted {detector_name!r}")
+
+    def _run_cheap_detectors(
+        self,
+        sample: PromptSample,
+        detector_names: list[str],
+    ) -> dict[str, DetectorResult]:
+        for detector_name in detector_names:
+            if detector_name not in self.detectors:
+                raise RuntimeError(f"configured cheap detector {detector_name!r} is not enabled")
+
+        with ThreadPoolExecutor(max_workers=len(detector_names)) as executor:
+            futures = {
+                detector_name: executor.submit(self.detectors[detector_name].detect, sample)
+                for detector_name in detector_names
+            }
+            return {
+                detector_name: futures[detector_name].result()
+                for detector_name in detector_names
+            }
+
+    def _d6_estimate_row(
+        self,
+        sample_id: str,
+        detector_name: str,
+        estimate: Any,
+        anchors: list[dict],
+    ) -> RuntimeDetectorRow:
+        stats = self._anchor_stats(detector_name, anchors)
+        return RuntimeDetectorRow(
+            id=sample_id,
+            detector=detector_name,
+            pred_label=0,
+            detector_confidence=0.0,
+            latency_ms=0.0,
+            pred_corr=estimate.pred_corr,
+            pred_risk=estimate.pred_risk,
+            pred_lat_ms=estimate.pred_lat_ms,
+            trust=stats.trust,
+            global_trust=stats.global_trust,
+            anchor_lat_ms=stats.anchor_lat_ms,
+        )
+
     def detect(
         self,
         sample: PromptSample,
@@ -83,23 +136,31 @@ class ScoutPipeline:
     ) -> dict[str, Any]:
         if include_details is not None:
             details = include_details
-        cheap_results: dict[str, DetectorResult] = {}
-        for detector_name in self.config.routing.cheap_pool:
-            if detector_name not in self.detectors:
-                raise RuntimeError(f"configured cheap detector {detector_name!r} is not enabled")
-            cheap_results[detector_name] = self.detectors[detector_name].detect(sample)
-
         anchors = self.retriever.retrieve(sample)
         candidate_detectors = self._candidate_detectors()
         fingerprint_maps = self._fingerprint_maps(candidate_detectors)
-        estimates = self._predict(sample, cheap_results, anchors, candidate_detectors, fingerprint_maps)
+        estimates = self._predict(sample, {}, anchors, candidate_detectors, fingerprint_maps)
+        self._require_predictor_estimates(estimates, candidate_detectors)
+
+        selected_cheap_detectors = [
+            detector_name
+            for detector_name in self.config.routing.cheap_pool
+            if estimates[detector_name].pred_corr >= self.config.routing.pred_corr_vote_threshold
+        ]
+        skipped_cheap_detectors = [
+            detector_name
+            for detector_name in self.config.routing.cheap_pool
+            if detector_name not in selected_cheap_detectors
+        ]
+        cheap_results = self._run_cheap_detectors(sample, selected_cheap_detectors) if selected_cheap_detectors else {}
         sample_id = sample.id or "sample"
 
         rows: list[RuntimeDetectorRow] = []
-        for detector_name, detector_result in cheap_results.items():
-            estimate = estimates.get(detector_name)
-            if estimate is None:
-                raise RuntimeError(f"predictor omitted {detector_name!r}")
+        for detector_name in self.config.routing.cheap_pool:
+            detector_result = cheap_results.get(detector_name)
+            if detector_result is None:
+                continue
+            estimate = estimates[detector_name]
             stats = self._anchor_stats(detector_name, anchors)
             rows.append(
                 RuntimeDetectorRow(
@@ -118,34 +179,31 @@ class ScoutPipeline:
             )
 
         d6_name = self.config.routing.escalation_detector
-        d6_estimate = estimates.get(d6_name)
-        if d6_estimate is None:
-            raise RuntimeError(f"predictor omitted escalation detector {d6_name!r}")
-        d6_stats = self._anchor_stats(d6_name, anchors)
-        rows.append(
-            RuntimeDetectorRow(
-                id=sample_id,
-                detector=d6_name,
-                pred_label=0,
-                detector_confidence=0.0,
-                latency_ms=0.0,
-                pred_corr=d6_estimate.pred_corr,
-                pred_risk=d6_estimate.pred_risk,
-                pred_lat_ms=d6_estimate.pred_lat_ms,
-                trust=d6_stats.trust,
-                global_trust=d6_stats.global_trust,
-                anchor_lat_ms=d6_stats.anchor_lat_ms,
-            )
-        )
+        rows.append(self._d6_estimate_row(sample_id, d6_name, estimates[d6_name], anchors))
 
-        decision = route_min_agreement_pred_skip(rows, self.config.routing)
         d6_result = None
-        if decision.escalate:
+        if not selected_cheap_detectors:
+            decision = RouteDecision(
+                detector=d6_name,
+                label=None,
+                escalate=True,
+                agreement=None,
+                vote=None,
+                threshold=self.config.routing.tau,
+                reason="no_selected_cheap_detectors",
+            )
             if d6_name not in self.detectors:
                 raise RuntimeError(f"D6 escalation selected but {d6_name!r} is not enabled")
             d6_result = self.detectors[d6_name].detect(sample)
             label = d6_result.label_text
         else:
+            decision = route_min_agreement_pred_skip(rows, self.config.routing)
+        if decision.escalate and d6_result is None:
+            if d6_name not in self.detectors:
+                raise RuntimeError(f"D6 escalation selected but {d6_name!r} is not enabled")
+            d6_result = self.detectors[d6_name].detect(sample)
+            label = d6_result.label_text
+        elif not decision.escalate:
             label = normalize_label_text(decision.label)
 
         output: dict[str, Any] = {"label": label}
@@ -171,6 +229,8 @@ class ScoutPipeline:
                 "predictor_outputs": {
                     name: estimate.__dict__ for name, estimate in estimates.items()
                 },
+                "selected_cheap_detectors": selected_cheap_detectors,
+                "skipped_cheap_detectors": skipped_cheap_detectors,
                 "router_rows": [row.as_dict() for row in rows],
             }
             if d6_result is not None:

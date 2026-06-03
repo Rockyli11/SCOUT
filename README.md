@@ -163,11 +163,13 @@ The manifest is an artifact registry only. Runtime pool selection still comes fr
 
 ## How It Works
 
-1. **Cheap detectors** (D1 rules, D2-LR, D3 DeBERTa) run first — fast, local.
-2. **Anchor retrieval** finds similar historical samples via embedding similarity.
-3. **Predictor** (vLLM + LoRA) estimates which detectors will be correct on this sample.
-4. **Router** votes with qualified detectors. If agreement is low *and* the predictor believes D6 will help, it escalates to an LLM judge.
-5. Otherwise, the cheap ensemble vote is the final answer.
+1. **Anchor retrieval** finds similar historical samples via embedding similarity.
+2. **Predictor** (vLLM + LoRA) estimates which candidate detectors will be correct on this sample.
+3. **Cheap detector selection** keeps only cheap-pool detectors whose predicted correctness meets `pred_corr_vote_threshold` (default `0.5`).
+4. **Selected cheap detectors** run in parallel. Cheap-pool detectors below the threshold are skipped.
+5. **Router** votes with the selected qualified detectors. If agreement is low *and* the predictor believes D6 will help, it escalates to an LLM judge.
+6. If no cheap detector is selected, SCOUT runs D6 directly.
+7. Otherwise, the cheap ensemble vote is the final answer.
 
 Default pool: `d1_rule_based`, `d2_lr`, `d3_deberta`. D6 (`gpt-4o`) is escalation only.
 
@@ -193,6 +195,19 @@ Use `--include-d4` or `--include-d5` to enable only one optional detector.
 ```bash
 python run_scout.py --input prompts.jsonl --include-d5 --output outputs/predictions.jsonl
 ```
+
+## VRAM Estimation
+
+All estimates include the vLLM predictor (4B, bf16) running alongside the detectors. D6 (`gpt-4o`) is a remote API and uses no local GPU memory.
+
+| Pool | Total VRAM | Required GPU |
+|---|---|---|
+| Default cheap (d1 + d2 + d3) | ~14 GB | 16 GB |
+| Cheap + D5 | ~22 GB | 24 GB |
+| Cheap + D4 | ~30 GB | 40 GB (A100) |
+| Cheap + D4 + D5 | ~38 GB | 48 GB (A40, A6000) |
+
+When heavy detectors (D4/D5) are loaded, vLLM's `gpu_memory_utilization` must be lowered so it does not starve them. Default is 0.75 — reduce to ~0.45 (D5), ~0.25 (D4), or ~0.20 (D4+D5). Adjust by editing `gpu_memory_utilization` in `predictor.py`.
 
 ## Custom Detector
 
@@ -234,4 +249,3 @@ Run your detector on the anchor set, then generate fingerprint entries in this f
 Without fingerprints the system will still run, but trust defaults to 0.5 and the predictor receives no detector profile or historical context, degrading routing quality.
 
 Downloaded fingerprints can be reused after self-training, but if your trained detectors behave very differently from the published detector profiles, routing quality may degrade. Refresh fingerprint records when detector behavior changes materially.
-

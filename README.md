@@ -105,6 +105,57 @@ Input format (JSONL, one object per line):
 {"id": "002", "eval_content": "Summarize this document.", "goal_text": "", "policy_text": ""}
 ```
 
+### Output format
+
+Without `--details`:
+
+```json
+{"label": "benign"}
+{"id": "001", "label": "attack"}
+```
+
+With `--details`:
+
+```json
+{
+  "id": "001",
+  "label": "attack",
+  "details": {
+    "route": "ensemble_cheap",
+    "d6_used": false,
+    "threshold": 0.875,
+    "agreement": 1.0,
+    "vote": 1.0,
+    "reason": "cheap_ensemble",
+    "detector_outputs": {
+      "d2_lr": {
+        "label": "attack",
+        "confidence": 0.9999,
+        "latency_ms": 18.3,
+        "raw": {"attack_probability": 0.9999}
+      },
+      "d3_deberta": {
+        "label": "attack",
+        "confidence": 0.9997,
+        "latency_ms": 1.3,
+        "raw": {"attack_probability": 0.9997}
+      }
+    },
+    "predictor_outputs": {
+      "d2_lr": {"pred_corr": 1.0, "pred_risk": 4.0, "pred_lat_ms": 23.1},
+      "d3_deberta": {"pred_corr": 1.0, "pred_risk": 4.0, "pred_lat_ms": 18.6},
+      "d6_llm_judge": {"pred_corr": 1.0, "pred_risk": 4.0, "pred_lat_ms": 1499.7}
+    },
+    "selected_cheap_detectors": ["d2_lr", "d3_deberta"],
+    "skipped_cheap_detectors": ["d1_rule_based"],
+    "router_rows": [
+      {"detector": "d2_lr", "pred_label": 1, "detector_confidence": 0.9999, "trust": 0.7, ...},
+      {"detector": "d3_deberta", "pred_label": 1, "detector_confidence": 0.9997, "trust": 0.9, ...}
+    ]
+  }
+}
+```
+
 ## Configuration
 
 Create `.env` (see `.env.example` for available options):

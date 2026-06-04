@@ -115,19 +115,12 @@ class RuntimeDetectorRow:
 
 @dataclass(frozen=True)
 class PredictorEstimate:
-    """SCOUT predictor estimate for one detector candidate.
-
-    `trust` and `global_trust` are retained for API compatibility only. The
-    runtime fills router rows from anchor fingerprint statistics, not from the
-    predictor output.
-    """
+    """SCOUT predictor estimate for one detector candidate."""
 
     detector: str
     pred_corr: float
     pred_risk: float = 0.0
     pred_lat_ms: float = 0.0
-    trust: float = 0.5
-    global_trust: float = 0.5
 
 
 PredictorOutput = PredictorEstimate

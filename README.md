@@ -85,6 +85,19 @@ python run_scout.py \
   --details
 ```
 
+For `--input`, the runtime first writes reusable predictor results to
+`outputs/predictions_predictor.jsonl`, releases the vLLM predictor object, then
+runs the selected detectors one sample at a time. To reuse an existing predictor
+file and skip the vLLM phase:
+
+```bash
+python run_scout.py \
+  --input examples/prompts.jsonl \
+  --predictor-input outputs/predictions_predictor.jsonl \
+  --output outputs/predictions.jsonl \
+  --details
+```
+
 ### Run on SCOUT-450 test set
 
 ```bash
@@ -215,9 +228,9 @@ The manifest is an artifact registry only. Runtime pool selection still comes fr
 ## How It Works
 
 1. **Anchor retrieval** finds similar historical samples via embedding similarity.
-2. **Predictor** (vLLM + LoRA) estimates which candidate detectors will be correct on this sample.
+2. **Predictor** (vLLM + LoRA) estimates which candidate detectors will be correct on this sample. For JSONL `--input`, this predictor phase runs for all samples first and writes a `_predictor.jsonl` intermediate file.
 3. **Cheap detector selection** keeps only cheap-pool detectors whose predicted correctness meets `pred_corr_vote_threshold` (default `0.5`).
-4. **Selected cheap detectors** run in parallel. Cheap-pool detectors below the threshold are skipped.
+4. **Selected cheap detectors** run in parallel within a single sample. Samples are processed sequentially.
 5. **Router** votes with the selected qualified detectors. If agreement is low *and* the predictor believes D6 will help, it escalates to an LLM judge.
 6. If no cheap detector is selected, SCOUT runs D6 directly.
 7. Otherwise, the cheap ensemble vote is the final answer.

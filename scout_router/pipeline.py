@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict
 from typing import Any
 
 from scout_router.config import ScoutConfig
@@ -17,6 +18,7 @@ from scout_router.schema import (
     PromptSample,
     RouteDecision,
     RuntimeDetectorRow,
+    PredictorEstimate,
     normalize_label_text,
 )
 
@@ -33,11 +35,23 @@ class ScoutPipeline:
         retriever: AnchorRetriever | None = None,
     ):
         self.config = config or ScoutConfig.from_env()
-        self.detectors = detectors or {
-            name: create_detector(name, config=self.config) for name in self.config.detectors_enabled
-        }
-        self.predictor = predictor or create_predictor(self.config)
+        self._detectors = detectors
+        self._predictor = predictor
         self.retriever = retriever or AnchorRetriever(self.config)
+
+    @property
+    def detectors(self) -> dict[str, DetectorBase]:
+        if self._detectors is None:
+            self._detectors = {
+                name: create_detector(name, config=self.config) for name in self.config.detectors_enabled
+            }
+        return self._detectors
+
+    @property
+    def predictor(self):
+        if self._predictor is None:
+            self._predictor = create_predictor(self.config)
+        return self._predictor
 
     def _candidate_detectors(self) -> list[str]:
         names = list(self.config.routing.cheap_pool)
@@ -110,9 +124,8 @@ class ScoutPipeline:
         sample_id: str,
         detector_name: str,
         estimate: Any,
-        anchors: list[dict],
+        stats: AnchorStats,
     ) -> RuntimeDetectorRow:
-        stats = self._anchor_stats(detector_name, anchors)
         return RuntimeDetectorRow(
             id=sample_id,
             detector=detector_name,
@@ -127,15 +140,38 @@ class ScoutPipeline:
             anchor_lat_ms=stats.anchor_lat_ms,
         )
 
-    def detect(
-        self,
-        sample: PromptSample,
-        *,
-        details: bool = False,
-        include_details: bool | None = None,
-    ) -> dict[str, Any]:
-        if include_details is not None:
-            details = include_details
+    def _stats_from_prediction_record(self, record: dict[str, Any]) -> dict[str, AnchorStats]:
+        stats_by_detector = {}
+        for detector, stats in record.get("anchor_stats", {}).items():
+            stats_by_detector[str(detector)] = AnchorStats(
+                trust=float(stats.get("trust", 0.5)),
+                global_trust=float(stats.get("global_trust", 0.5)),
+                anchor_lat_ms=float(stats.get("anchor_lat_ms", 0.0)),
+            )
+        return stats_by_detector
+
+    def _sample_from_prediction_record(self, record: dict[str, Any]) -> PromptSample:
+        sample_data = record.get("sample", record)
+        return PromptSample(
+            id=sample_data.get("id"),
+            eval_content=str(sample_data["eval_content"]),
+            goal_text=str(sample_data.get("goal_text", "")),
+            policy_text=str(sample_data.get("policy_text", "")),
+        )
+
+    def _estimates_from_prediction_record(self, record: dict[str, Any]) -> dict[str, PredictorEstimate]:
+        estimates = {}
+        for detector, estimate in record.get("predictor_outputs", {}).items():
+            estimates[str(detector)] = PredictorEstimate(
+                detector=str(estimate.get("detector", detector)),
+                pred_corr=float(estimate.get("pred_corr", 0.0)),
+                pred_risk=float(estimate.get("pred_risk", 0.0)),
+                pred_lat_ms=float(estimate.get("pred_lat_ms", 0.0)),
+            )
+        return estimates
+
+    def build_prediction_record(self, sample: PromptSample) -> dict[str, Any]:
+        """Run retrieval and predictor for one sample, returning a reusable JSON record."""
         anchors = self.retriever.retrieve(sample)
         candidate_detectors = self._candidate_detectors()
         fingerprint_maps = self._fingerprint_maps(candidate_detectors)
@@ -152,6 +188,43 @@ class ScoutPipeline:
             for detector_name in self.config.routing.cheap_pool
             if detector_name not in selected_cheap_detectors
         ]
+        return {
+            "sample": {
+                "id": sample.id,
+                "eval_content": sample.eval_content,
+                "goal_text": sample.goal_text,
+                "policy_text": sample.policy_text,
+            },
+            "candidate_detectors": candidate_detectors,
+            "predictor_outputs": {
+                name: asdict(estimate) for name, estimate in estimates.items()
+            },
+            "selected_cheap_detectors": selected_cheap_detectors,
+            "skipped_cheap_detectors": skipped_cheap_detectors,
+            "anchor_stats": {
+                detector_name: asdict(self._anchor_stats(detector_name, anchors))
+                for detector_name in candidate_detectors
+            },
+        }
+
+    def close_predictor(self) -> None:
+        if self._predictor is None:
+            return
+        close = getattr(self._predictor, "close", None)
+        if close is not None:
+            close()
+        self._predictor = None
+
+    def _detect_with_prediction_state(
+        self,
+        sample: PromptSample,
+        estimates: dict[str, PredictorEstimate],
+        selected_cheap_detectors: list[str],
+        skipped_cheap_detectors: list[str],
+        stats_by_detector: dict[str, AnchorStats],
+        *,
+        details: bool,
+    ) -> dict[str, Any]:
         cheap_results = self._run_cheap_detectors(sample, selected_cheap_detectors) if selected_cheap_detectors else {}
         sample_id = sample.id or "sample"
 
@@ -161,7 +234,7 @@ class ScoutPipeline:
             if detector_result is None:
                 continue
             estimate = estimates[detector_name]
-            stats = self._anchor_stats(detector_name, anchors)
+            stats = stats_by_detector.get(detector_name, AnchorStats(trust=0.5, global_trust=0.5, anchor_lat_ms=0.0))
             rows.append(
                 RuntimeDetectorRow(
                     id=sample_id,
@@ -179,7 +252,14 @@ class ScoutPipeline:
             )
 
         d6_name = self.config.routing.escalation_detector
-        rows.append(self._d6_estimate_row(sample_id, d6_name, estimates[d6_name], anchors))
+        rows.append(
+            self._d6_estimate_row(
+                sample_id,
+                d6_name,
+                estimates[d6_name],
+                stats_by_detector.get(d6_name, AnchorStats(trust=0.5, global_trust=0.5, anchor_lat_ms=0.0)),
+            )
+        )
 
         d6_result = None
         if not selected_cheap_detectors:
@@ -227,7 +307,7 @@ class ScoutPipeline:
                     for name, result in cheap_results.items()
                 },
                 "predictor_outputs": {
-                    name: estimate.__dict__ for name, estimate in estimates.items()
+                    name: asdict(estimate) for name, estimate in estimates.items()
                 },
                 "selected_cheap_detectors": selected_cheap_detectors,
                 "skipped_cheap_detectors": skipped_cheap_detectors,
@@ -241,3 +321,50 @@ class ScoutPipeline:
                     "raw": d6_result.raw,
                 }
         return output
+
+    def detect_from_prediction_record(
+        self,
+        record: dict[str, Any],
+        *,
+        details: bool = False,
+    ) -> dict[str, Any]:
+        sample = self._sample_from_prediction_record(record)
+        candidate_detectors = list(record.get("candidate_detectors", self._candidate_detectors()))
+        estimates = self._estimates_from_prediction_record(record)
+        self._require_predictor_estimates(estimates, candidate_detectors)
+        if "selected_cheap_detectors" in record:
+            selected_cheap_detectors = list(record["selected_cheap_detectors"])
+        else:
+            selected_cheap_detectors = [
+                detector_name
+                for detector_name in self.config.routing.cheap_pool
+                if estimates[detector_name].pred_corr >= self.config.routing.pred_corr_vote_threshold
+            ]
+        if "skipped_cheap_detectors" in record:
+            skipped_cheap_detectors = list(record["skipped_cheap_detectors"])
+        else:
+            skipped_cheap_detectors = [
+                detector_name
+                for detector_name in self.config.routing.cheap_pool
+                if detector_name not in selected_cheap_detectors
+            ]
+        return self._detect_with_prediction_state(
+            sample,
+            estimates,
+            selected_cheap_detectors,
+            skipped_cheap_detectors,
+            self._stats_from_prediction_record(record),
+            details=details,
+        )
+
+    def detect(
+        self,
+        sample: PromptSample,
+        *,
+        details: bool = False,
+        include_details: bool | None = None,
+    ) -> dict[str, Any]:
+        if include_details is not None:
+            details = include_details
+        record = self.build_prediction_record(sample)
+        return self.detect_from_prediction_record(record, details=details)

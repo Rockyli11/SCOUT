@@ -29,6 +29,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     source.add_argument("--text", help="single prompt/content string")
     source.add_argument("--input", type=Path, help="JSONL file with eval_content records")
     parser.add_argument("--output", type=Path, help="optional JSONL output file")
+    parser.add_argument(
+        "--predictor-input",
+        type=Path,
+        help="reuse a predictor JSONL file and skip the vLLM predictor phase; only valid with --input",
+    )
     parser.add_argument("--details", action="store_true", help="include detector, predictor, and router details")
     parser.add_argument("--cache-dir", type=Path, help="override SCOUT_CACHE_DIR")
     parser.add_argument("--env-file", type=Path, default=THIS_DIR / ".env")
@@ -47,7 +52,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="enable all optional heavy cheap detectors: D4 and D5",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.predictor_input is not None and args.input is None:
+        parser.error("--predictor-input is only valid with --input")
+    return args
 
 
 def configure_cheap_pool(config: ScoutConfig, args: "Namespace") -> ScoutConfig:
@@ -83,14 +91,18 @@ def sample_from_record(record: dict, index: int) -> PromptSample:
     )
 
 
+def default_predictor_output_path(input_path: Path, output_path: Path | None) -> Path:
+    base_path = output_path or input_path
+    suffix = base_path.suffix or ".jsonl"
+    return base_path.with_name(f"{base_path.stem}_predictor{suffix}")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     from scout_router.pipeline import ScoutPipeline
 
     config = ScoutConfig.from_env(env_path=args.env_file, cache_dir=args.cache_dir)
     config = configure_cheap_pool(config, args)
-    pipeline = ScoutPipeline(config)
-
     def emit(record: dict, handle) -> None:
         line = json.dumps(record, ensure_ascii=False)
         if handle is None:
@@ -98,20 +110,40 @@ def main(argv: list[str] | None = None) -> int:
         else:
             handle.write(line + "\n")
 
+    pipeline = ScoutPipeline(config)
     out_handle = None
     try:
+        if args.text is not None:
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                out_handle = args.output.open("w", encoding="utf-8")
+            sample = PromptSample(id=None, eval_content=args.text)
+            emit(pipeline.detect(sample, details=args.details), out_handle)
+            return 0
+
+        predictor_path = args.predictor_input or default_predictor_output_path(args.input, args.output)
+        if args.predictor_input is None:
+            predictor_path.parent.mkdir(parents=True, exist_ok=True)
+            pred_handle = predictor_path.open("w", encoding="utf-8")
+            try:
+                with args.input.open(encoding="utf-8") as handle:
+                    for index, line in enumerate(handle, start=1):
+                        if not line.strip():
+                            continue
+                        sample = sample_from_record(json.loads(line), index)
+                        emit(pipeline.build_prediction_record(sample), pred_handle)
+            finally:
+                pred_handle.close()
+                pipeline.close_predictor()
+
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             out_handle = args.output.open("w", encoding="utf-8")
-        if args.text is not None:
-            sample = PromptSample(id=None, eval_content=args.text)
-            emit(pipeline.detect(sample, details=args.details), out_handle)
-        else:
-            with args.input.open(encoding="utf-8") as handle:
-                for index, line in enumerate(handle, start=1):
-                    if not line.strip():
-                        continue
-                    emit(pipeline.detect(sample_from_record(json.loads(line), index), details=args.details), out_handle)
+        with predictor_path.open(encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip():
+                    continue
+                emit(pipeline.detect_from_prediction_record(json.loads(line), details=args.details), out_handle)
     finally:
         if out_handle is not None:
             out_handle.close()

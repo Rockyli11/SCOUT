@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import json
 import re
 from pathlib import Path
@@ -305,6 +306,32 @@ class ScoutPredictor:
             cache_dir=str(self.config.cache_dir / "hf_models"),
         )
         return self._tokenizer
+
+    def close(self) -> None:
+        """Release object-owned vLLM resources before loading detector models."""
+        llm = self._llm
+        for owner_name, method_name in (
+            (None, "shutdown"),
+            (None, "close"),
+            ("llm_engine", "shutdown"),
+            ("llm_engine", "close"),
+        ):
+            owner = llm if owner_name is None else getattr(llm, owner_name, None)
+            method = getattr(owner, method_name, None)
+            if callable(method):
+                method()
+                break
+        self._llm = None
+        self._tokenizer = None
+        gc.collect()
+        try:
+            import torch
+        except ImportError:
+            return
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
 
     def predict(
         self,

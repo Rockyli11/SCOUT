@@ -161,7 +161,7 @@ def embed_texts(
         max_seq_length=max_seq_length,
         chunk_overlap=chunk_overlap,
     )
-    embeddings = np.zeros((len(texts), embedder.get_sentence_embedding_dimension()), dtype=np.float32)
+    embeddings = np.zeros((len(texts), embedder.get_embedding_dimension()), dtype=np.float32)
     regular_items = [item for item in prepared if not item.is_chunked]
     chunked_items = [item for item in prepared if item.is_chunked]
 

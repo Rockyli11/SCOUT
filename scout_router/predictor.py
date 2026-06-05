@@ -286,7 +286,7 @@ class ScoutPredictor:
             model=self.base_model_ref,
             dtype="bfloat16",
             gpu_memory_utilization=0.75,
-            max_model_len=8192,
+            max_model_len=4096,
             trust_remote_code=True,
             enable_lora=True,
             max_loras=1,

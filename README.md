@@ -85,10 +85,10 @@ python run_scout.py \
   --details
 ```
 
-For `--input`, the runtime first writes reusable predictor results to
-`outputs/predictions_predictor.jsonl`, releases the vLLM predictor object, then
-runs the selected detectors one sample at a time. To reuse an existing predictor
-file and skip the vLLM phase:
+For `--input`, the runtime uses `outputs/predictions_predictor.jsonl` as a reusable
+predictor cache. If that file already exists, it is reused directly; otherwise the
+runtime writes it first, releases the vLLM predictor object, then runs the selected
+detectors one sample at a time. To force reuse of a specific predictor file:
 
 ```bash
 python run_scout.py \
@@ -106,7 +106,7 @@ python download_assets.py --test-data
 
 # run with vLLM predictor (requires GPU + configured .env)
 python run_scout.py \
-  --input ~/.cache/scout-router/test_data/test_set.jsonl \
+  --input ./cache/scout-router/test_data/SCOUT-450.jsonl \
   --output outputs/scout450_predictions.jsonl \
   --details
 ```
@@ -262,16 +262,31 @@ python run_scout.py --input prompts.jsonl --include-d5 --output outputs/predicti
 
 ## VRAM Estimation
 
-All estimates include the vLLM predictor (4B, bf16) running alongside the detectors. D6 (`gpt-4o`) is a remote API and uses no local GPU memory.
+Peak VRAM depends on the run mode. D6 (`gpt-4o`) is a remote API and uses no local GPU memory.
+
+### `--input` mode (two-phase)
+
+The vLLM predictor runs first and is released before detectors load, so vLLM and detector backbones never co-reside in VRAM. Peak is the heavier of the two phases.
+
+| Pool | Predictor phase | Detector phase | Required GPU |
+|---|---|---|---|
+| Default cheap (d1+d2+d3) | ~8 GB | ~6 GB | 16 GB |
+| Cheap + D5 | ~8 GB | ~14 GB | 16 GB |
+| Cheap + D4 | ~8 GB | ~22 GB | 24 GB |
+| Cheap + D4 + D5 | ~8 GB | ~30 GB | 40 GB (A100) |
+
+### `--text` mode (single sample)
+
+Predictor and detectors are loaded together for a single inference.
 
 | Pool | Total VRAM | Required GPU |
 |---|---|---|
-| Default cheap (d1 + d2 + d3) | ~14 GB | 16 GB |
+| Default cheap (d1+d2+d3) | ~14 GB | 16 GB |
 | Cheap + D5 | ~22 GB | 24 GB |
 | Cheap + D4 | ~30 GB | 40 GB (A100) |
 | Cheap + D4 + D5 | ~38 GB | 48 GB (A40, A6000) |
 
-When heavy detectors (D4/D5) are loaded, vLLM's `gpu_memory_utilization` must be lowered so it does not starve them. Default is 0.75 — reduce to ~0.45 (D5), ~0.25 (D4), or ~0.20 (D4+D5). Adjust by editing `gpu_memory_utilization` in `predictor.py`.
+When heavy detectors (D4/D5) co-reside with vLLM, lower `gpu_memory_utilization` in `predictor.py`: ~0.45 (D5), ~0.25 (D4), or ~0.20 (D4+D5). In two-phase `--input` mode, the default 0.75 is fine since vLLM runs alone.
 
 ## Custom Detector
 

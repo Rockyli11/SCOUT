@@ -122,7 +122,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         predictor_path = args.predictor_input or default_predictor_output_path(args.input, args.output)
-        if args.predictor_input is None:
+        should_generate_predictor = args.predictor_input is None and not predictor_path.exists()
+        if should_generate_predictor:
             predictor_path.parent.mkdir(parents=True, exist_ok=True)
             pred_handle = predictor_path.open("w", encoding="utf-8")
             try:

@@ -68,7 +68,7 @@ class PredictorConfig:
     backend: str = "vllm"
     base_model: str = "sullivanUCSD/InstinctSCOPE-4B-SFT-CoT_v2"
     adapter: str = "sullivanUCSD/InstinctSCOPE-ckpt-462"
-    max_new_tokens: int = 4096
+    max_new_tokens: int = 512
     temperature: float = 0.2
     top_p: float = 0.8
     top_k: int = 20

@@ -18,14 +18,14 @@ python train_detectors.py \
   --artifact-dir ~/.cache/scout-router/detectors
 ```
 
-`--default` downloads inference assets that are still published by SCOUT into `~/.cache/scout-router` unless `SCOUT_CACHE_DIR` or `--cache-dir` is set:
+`--default` downloads inference assets published for SCOUT into `~/.cache/scout-router` unless `SCOUT_CACHE_DIR` or `--cache-dir` is set. The adapter, anchor set, fingerprints, and test set are listed in the [SCOUT Hugging Face collection](https://huggingface.co/collections/sullivanUCSD/scout-6a288b592ba1efd9d12897d7):
 
-- predictor base model: `sullivanUCSD/InstinctSCOPE-4B-SFT-CoT_v2`
-- predictor LoRA adapter: `sullivanUCSD/InstinctSCOPE-ckpt-462`
+- predictor base model: `sullivanUCSD/SCOUT-SFT-only`
+- predictor LoRA adapter: `sullivanUCSD/SCOUT`
 - anchor records: `sullivanUCSD/anchor-400`
 - detector fingerprints: `sullivanUCSD/fingerprint`
 
-It does not download trained detector weights. D2/D3/D4/D5 are trained locally from your data and registered through `manifest.json`. Use `--test-data` only for the SCOUT-450 test set.
+It does not download trained detector weights. D2/D3/D4/D5 are trained locally from your data and registered through `manifest.json`. Use `--test-data` only for the `sullivanUCSD/SCOUT-450` test set.
 
 The runtime predictor currently supports the `vllm` backend, so use a GPU machine with the required model weights available.
 

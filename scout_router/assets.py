@@ -10,8 +10,8 @@ from pathlib import Path
 from scout_router.config import DEFAULT_CACHE_DIR
 
 ASSET_REPOS = {
-    "predictor_base": "sullivanUCSD/InstinctSCOPE-4B-SFT-CoT_v2",
-    "predictor_adapter": "sullivanUCSD/InstinctSCOPE-ckpt-462",
+    "predictor_base": "sullivanUCSD/SCOUT-SFT-only",
+    "predictor_adapter": "sullivanUCSD/SCOUT",
     "anchor_set": "sullivanUCSD/anchor-400",
     "fingerprints": "sullivanUCSD/fingerprint",
     "test_data": "sullivanUCSD/SCOUT-450",

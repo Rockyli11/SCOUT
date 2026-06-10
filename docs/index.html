@@ -240,15 +240,6 @@
         text-align: center;
       }
 
-      .kicker {
-        margin: 0 0 6px;
-        color: var(--soft);
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
       .lede,
       .body-copy,
       .caption,
@@ -354,6 +345,20 @@
         border-bottom: 1px solid var(--line);
       }
 
+      .major-title-band {
+        width: 100%;
+        margin: 18px 0 6px;
+        padding: 18px 0;
+        background: var(--section-bg);
+        text-align: center;
+      }
+
+      .major-title-band h2 {
+        color: #363636;
+        font-size: clamp(2.4rem, 5vw, 3rem);
+        line-height: 1;
+      }
+
       .news-date {
         color: var(--soft);
         font-variant-numeric: tabular-nums;
@@ -438,6 +443,31 @@
         display: grid;
         gap: 26px;
         margin-top: 0;
+      }
+
+      .result-section {
+        margin-top: 46px;
+      }
+
+      .result-section:first-of-type {
+        margin-top: 28px;
+      }
+
+      .result-section-head {
+        max-width: var(--measure);
+        margin: 0 auto 18px;
+        text-align: center;
+      }
+
+      .result-section-head h3 {
+        font-family: var(--display);
+        font-size: clamp(1.25rem, 2vw, 1.65rem);
+        font-weight: 700;
+      }
+
+      .result-section-head p {
+        margin: 8px 0 0;
+        color: var(--muted);
       }
 
       .table-card {
@@ -636,6 +666,11 @@
           padding: 40px 0;
         }
 
+        .major-title-band {
+          margin-top: 4px;
+          padding: 16px 0;
+        }
+
         .nav {
           align-items: center;
           padding: 12px 0;
@@ -674,6 +709,7 @@
 
         .hero-inner,
         .section-head,
+        .result-section-head,
         .body-copy,
         .method-copy,
         .data-layout,
@@ -711,11 +747,11 @@
         <a class="brand" href="#top">SCOUT</a>
         <nav class="nav-links" aria-label="Section navigation">
           <a href="#news">News</a>
-          <a href="#overview">Overview</a>
-          <a href="#method">Method</a>
+          <a href="#overview">Introduction</a>
+          <a href="#method">Pipeline</a>
           <a href="#results">Results</a>
           <a href="#data">Data</a>
-          <a href="#bibtex">BibTeX</a>
+          <a href="#bibtex">Reference</a>
         </nav>
       </div>
     </header>
@@ -725,7 +761,7 @@
         <div class="wrap hero-inner">
           <h1>Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense</h1>
           <p class="subtitle">
-            Prompt-injection defense should not commit every request to one fixed detector. SCOUT routes each input through a detector pool using predicted detector reliability and latency.
+            Prompt-injection defenses should not send every request through the same detector. SCOUT predicts which detectors are worth using for the current input, then spends the expensive judge only when the light detectors disagree.
           </p>
           <div class="authors">
             <p>
@@ -765,7 +801,7 @@
           <figure class="main-figure">
             <img src="static/images/fig_main_v6.png" alt="SCOUT overview showing detector error patterns, per-input routing, and detector invocation share across thresholds.">
             <figcaption>
-              SCOUT allocates detectors per input. The router uses detector fingerprints to estimate which light detectors to trust and when to escalate to an LLM judge.
+              SCOUT makes a per-input routing decision: trust the light detector pool when its predicted behavior is clear, or escalate to the LLM judge when it is not.
             </figcaption>
           </figure>
         </div>
@@ -774,13 +810,12 @@
       <section id="news" class="section-anchor">
         <div class="wrap">
           <div class="section-head">
-            <p class="kicker">News</p>
-            <h2>Updates</h2>
+            <h2>News</h2>
           </div>
           <ul class="news-list">
             <li>
               <span class="news-date">2026-05-29</span>
-              <span>Project page, arXiv paper, code, and Hugging Face models and data are online.</span>
+              <span>Project page, arXiv paper, code, and Hugging Face releases are online.</span>
             </li>
           </ul>
         </div>
@@ -790,51 +825,53 @@
         <div class="wrap two-col">
           <div>
             <div class="section-head">
-              <p class="kicker">Abstract / Overview</p>
               <h2>Detector allocation instead of detector commitment</h2>
               <p class="lede">
-                Prompt-injection detectors are heterogeneous: each is fast or accurate on a different slice of requests, and none is best everywhere.
+                Prompt-injection detectors fail in different places. Some are cheap but brittle; stronger judges are slower and costly to run on every request.
               </p>
             </div>
           </div>
           <div class="body-copy">
             <p>
-              SCOUT treats defense as a routing problem. For each input, it predicts how each detector is likely to behave, runs a predicted-reliable light pool, and escalates to an LLM judge only when the vote remains uncertain.
+              SCOUT treats defense as a routing problem. For each input, it estimates how each detector is likely to behave, runs the light detectors that look reliable, and calls the LLM judge only when the vote is still uncertain.
             </p>
             <p>
-              The system exposes one threshold, <span aria-label="tau">tau</span>, to control the safety-latency trade-off. Raising the threshold increases judge usage; lowering it trusts the light pool more often.
+              A single threshold, <span aria-label="tau">tau</span>, controls the trade-off. Higher values call the judge more often; lower values lean on the light pool and reduce latency.
             </p>
             <ul class="contrib-list">
               <li>Per-input detector allocation instead of a fixed single-detector pipeline.</li>
-              <li>Fingerprint-based prediction of detector correctness and latency from similar past inputs.</li>
-              <li>One threshold for operating-point control across safety, benign utility, and wall-clock.</li>
-              <li>SCOUT-450 plus transfer results on BIPIA, IPI, and IHEval.</li>
+              <li>Detector correctness and latency estimates built from similar past inputs.</li>
+              <li>One threshold for moving between stronger safety and lower wall-clock time.</li>
+              <li>Evaluation on SCOUT-450, with transfer tests on BIPIA, IPI, and IHEval.</li>
             </ul>
           </div>
         </div>
       </section>
 
+      <div class="major-title-band" aria-hidden="true">
+        <h2>SCOUT</h2>
+      </div>
+
       <section id="method" class="section-anchor">
         <div class="wrap">
           <div class="section-head">
-            <p class="kicker">Method</p>
             <h2>Fingerprint, predict, route</h2>
             <p class="lede">
-              SCOUT builds a behavioral fingerprint for each detector, predicts per-input reliability and latency, then decides whether the light pool is confident enough to answer.
+              SCOUT first looks at how detectors behaved on similar inputs. It then predicts detector reliability and latency for the current request before making the routing decision.
             </p>
           </div>
           <div class="body-copy method-copy">
             <p>
-              A retrieved Anchor-400 neighborhood provides detector fingerprints for inputs that look similar to the current request. A small predictor reads those fingerprints and emits a correctness and latency estimate for each detector.
+              For a new request, SCOUT retrieves nearby examples from Anchor-400 and uses their detector outcomes as a behavioral fingerprint. A small predictor reads that fingerprint and estimates correctness and latency for each detector.
             </p>
             <p>
-              The router keeps only detectors predicted to be reliable, aggregates them with trust weights, and compares the vote confidence against the threshold. If the vote is not decisive, SCOUT escalates to the LLM judge.
+              The router keeps the detectors predicted to be reliable, weights their votes by trust, and checks the vote confidence against the threshold. If the light pool cannot give a clear answer, SCOUT escalates to the LLM judge.
             </p>
           </div>
           <figure class="figure-plate method-figure">
             <img src="static/images/scout_framework.png" alt="SCOUT framework showing fingerprint construction, detector outcome prediction, and uncertainty-aware triage.">
             <figcaption>
-              SCOUT retrieves similar anchor examples, predicts detector behavior, and routes each request through a light-pool vote or judge escalation.
+              SCOUT retrieves similar anchor examples, predicts detector behavior, and sends each request either to a light-pool vote or to judge escalation.
             </figcaption>
           </figure>
         </div>
@@ -843,27 +880,28 @@
       <section id="results" class="section-anchor">
         <div class="wrap">
           <div class="section-head">
-            <p class="kicker">Results</p>
-            <h2>SCOUT-450 and cross-benchmark transfer</h2>
+            <h2>Results</h2>
             <p class="lede">
-              On SCOUT-450, the headline operating point at tau = 0.875 reaches the lowest total ASR and the highest accuracy among the reported systems while using about 0.6x the total wall-clock of an always-on GPT-4o judge.
+              On SCOUT-450, the tau = 0.875 operating point gives the lowest total ASR and the highest accuracy among the reported systems, while using about 60% of the wall-clock time of an always-on GPT-4o judge.
             </p>
           </div>
 
-          <figure class="figure-plate result-hero">
-            <img src="static/images/fig_lat_quality.png" alt="Wall-clock versus quality frontier on SCOUT-450 across the SCOUT threshold sweep.">
-            <figcaption>
-              SCOUT-450 latency-quality frontier. Increasing tau moves the system toward lower ASR and higher accuracy at higher wall-clock.
-            </figcaption>
-          </figure>
-
-          <div class="results-layout">
+          <div class="result-section">
+            <div class="result-section-head">
+              <h3>Comparison with individual detectors</h3>
+              <p>SCOUT is compared with fixed detector choices and an always-on GPT-4o judge on SCOUT-450.</p>
+            </div>
+            <figure class="figure-plate result-hero">
+              <img src="static/images/fig_lat_quality.png" alt="Wall-clock versus quality frontier on SCOUT-450 across the SCOUT threshold sweep.">
+              <figcaption>
+                SCOUT-450 latency-quality frontier. Raising tau shifts the system toward lower ASR and higher accuracy, at the cost of more wall-clock time.
+              </figcaption>
+            </figure>
             <div class="result-block">
               <article class="table-card">
                 <div class="table-head">
                   <div>
-                    <h3>SCOUT-450 Main Result</h3>
-                    <p class="table-note">Lower ASR is better. Higher BU and accuracy are better.</p>
+                    <p class="table-note">Lower ASR is better; higher BU and accuracy are better.</p>
                   </div>
                 </div>
                 <div class="table-scroll">
@@ -931,11 +969,18 @@
                   </table>
                 </div>
               </article>
+            </div>
+          </div>
 
+          <div class="result-section">
+            <div class="result-section-head">
+              <h3>Ablation study</h3>
+              <p>These ablations separate the effect of detector allocation, predictor choice, and trust-aware routing.</p>
+            </div>
+            <div class="result-block">
               <article class="table-card">
                 <div class="table-head">
                   <div>
-                    <h3>Ablation</h3>
                     <p class="table-note">Allocation and predictor quality both matter.</p>
                   </div>
                 </div>
@@ -1010,21 +1055,28 @@
                     </tbody>
                   </table>
                 </div>
-                <p class="table-note">SCOUT gains come from both the routing rule and a predictor that can rank detector reliability per input.</p>
+                <p class="table-note">The gain comes from the routing rule and from predicting detector reliability per input.</p>
               </article>
-            </div>
 
-            <div class="figure-stack result-figures">
               <figure class="figure-plate">
                 <img src="static/images/fig_asr_bu_ablation.png" alt="Ablation curves varying predictor recipe, routing rule, and trust mixing on SCOUT-450.">
                 <figcaption>
-                  Ablation curves. The best frontier appears only when SCOUT combines per-input prediction with trust-aware routing.
+                  Ablation curves. The strongest frontier comes from combining per-input prediction with trust-aware routing.
                 </figcaption>
               </figure>
+            </div>
+          </div>
+
+          <div class="result-section">
+            <div class="result-section-head">
+              <h3>Cross-benchmark transfer</h3>
+              <p>The same SCOUT configuration is evaluated on BIPIA, IPI, and IHEval without retraining.</p>
+            </div>
+            <div class="figure-stack result-figures">
               <figure class="figure-plate">
                 <img src="static/images/fig_h2_lat.png" alt="Cross-benchmark latency-quality plots for BIPIA, IPI, and IHEval.">
                 <figcaption>
-                  Transfer without retraining. The same SCOUT configuration reduces wall-clock on BIPIA, IPI, and IHEval.
+                  Transfer without retraining. The same SCOUT configuration reduces wall-clock time on BIPIA, IPI, and IHEval.
                 </figcaption>
               </figure>
             </div>
@@ -1035,10 +1087,9 @@
       <section id="data" class="section-anchor">
         <div class="wrap">
           <div class="section-head">
-            <p class="kicker">Data</p>
             <h2>SCOUT-30K, Anchor-400, and SCOUT-450</h2>
             <p class="lede">
-              SCOUT uses separate data roles for detector training, predictor supervision, fingerprint retrieval, and evaluation.
+              The released data separates detector training, predictor supervision, fingerprint retrieval, and evaluation.
             </p>
           </div>
           <div class="data-layout">
@@ -1049,7 +1100,7 @@
                 <li><strong>SCOUT-450:</strong> 450 evaluation samples, with 255 attacks and 195 benign cases, enriched for harder agent-facing injections.</li>
               </ul>
               <p class="lede">
-                The page focuses on the evaluation benchmark, but the routing system depends on keeping these roles disjoint.
+                The page centers on SCOUT-450, but the routing setup depends on keeping these roles separate.
               </p>
             </div>
             <figure class="figure-plate">
@@ -1065,8 +1116,7 @@
       <section id="bibtex" class="section-anchor">
         <div class="wrap">
           <div class="section-head">
-            <p class="kicker">BibTeX</p>
-            <h2>Citation</h2>
+            <h2>Reference</h2>
           </div>
           <div class="bibtex-card">
             <pre class="bibtex"><code>@misc{zhang2026scout,

@@ -47,6 +47,7 @@
         font-family: var(--text);
         font-size: 16px;
         line-height: 1.55;
+        overflow-x: hidden;
         text-rendering: optimizeLegibility;
       }
 
@@ -61,7 +62,7 @@
       }
 
       .wrap {
-        width: min(var(--content), calc(100% - 40px));
+        width: min(var(--content), calc(100vw - 40px));
         margin: 0 auto;
       }
 
@@ -89,6 +90,7 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: 2px 18px;
+        max-width: 100%;
       }
 
       .nav-links a {
@@ -178,11 +180,13 @@
         justify-content: center;
         gap: 10px;
         margin: 27px 0 0;
+        max-width: 100%;
       }
 
       .chip {
         display: inline-flex;
         align-items: center;
+        flex: 0 1 auto;
         gap: 8px;
         min-height: 40px;
         padding: 0 17px;
@@ -193,6 +197,7 @@
         font-size: 1rem;
         font-weight: 500;
         text-decoration: none;
+        max-width: 100%;
         transition:
           background-color 160ms ease,
           border-color 160ms ease,
@@ -267,7 +272,7 @@
       }
 
       .paper-strip .wrap {
-        width: min(var(--wide), calc(100% - 40px));
+        width: min(var(--wide), calc(100vw - 40px));
       }
 
       .main-figure,
@@ -278,13 +283,19 @@
       }
 
       .main-figure {
-        padding: 0;
+        margin: 0;
       }
 
       .main-figure img,
       .figure-plate img {
-        border: 1px solid var(--line-soft);
-        background: #ffffff;
+        display: block;
+        width: auto;
+        max-width: 100%;
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background: #fafafa;
+        padding: 10px;
         margin: 0 auto;
       }
 
@@ -303,16 +314,21 @@
       }
 
       figcaption {
-        padding: 11px 2px 0;
+        max-width: var(--measure);
+        margin: 12px auto 0;
+        padding: 0;
         border-top: 0;
         background: #ffffff;
-        font-size: 0.9rem;
+        color: #666666;
+        font-size: 0.88rem;
+        font-style: italic;
         line-height: 1.5;
+        text-align: center;
       }
 
       .main-figure figcaption {
         max-width: 880px;
-        margin: 0 auto;
+        margin: 12px auto 0;
         text-align: center;
       }
 
@@ -396,15 +412,12 @@
 
       .figure-stack {
         display: grid;
-        gap: 26px;
+        gap: 0;
       }
 
       .figure-plate {
-        padding-top: 0;
-      }
-
-      .figure-plate img {
-        max-width: 100%;
+        margin: 2rem 0;
+        padding: 0;
       }
 
       .method-figure img {
@@ -452,6 +465,7 @@
       }
 
       .table-scroll {
+        max-width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
@@ -512,28 +526,19 @@
 
       .results-layout,
       .data-layout {
-        display: grid;
-        gap: 34px;
-        align-items: start;
-      }
-
-      .results-layout {
-        grid-template-columns: 1fr;
+        display: block;
       }
 
       .data-layout {
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
         margin-top: 24px;
       }
 
       .result-figures {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 26px;
+        display: block;
       }
 
       .result-hero {
-        margin: 6px 0 34px;
+        margin: 2rem 0;
       }
 
       .bibtex-card {
@@ -618,11 +623,13 @@
 
       @media (max-width: 640px) {
         .wrap {
-          width: min(var(--content), calc(100% - 24px));
+          width: min(var(--content), calc(100vw - 24px));
+          max-width: calc(100vw - 24px);
         }
 
         .paper-strip .wrap {
-          width: min(var(--wide), calc(100% - 24px));
+          width: min(var(--wide), calc(100vw - 24px));
+          max-width: calc(100vw - 24px);
         }
 
         section {
@@ -637,14 +644,48 @@
         }
 
         .nav-links {
-          gap: 10px 14px;
+          gap: 8px 12px;
           justify-content: center;
+          font-size: 0.86rem;
         }
 
         .chip {
           min-height: 36px;
-          padding: 0 12px;
-          font-size: 0.88rem;
+          padding: 0 10px;
+          font-size: 0.82rem;
+        }
+
+        h1 {
+          font-size: clamp(1.8rem, 8vw, 2.35rem);
+          overflow-wrap: anywhere;
+        }
+
+        .subtitle,
+        .authors {
+          font-size: 1rem;
+        }
+
+        .main-figure img,
+        .figure-plate img {
+          width: 100%;
+          max-width: calc(100vw - 24px);
+          padding: 6px;
+        }
+
+        .hero-inner,
+        .section-head,
+        .body-copy,
+        .method-copy,
+        .data-layout,
+        .table-card,
+        .bibtex-card {
+          max-width: 100%;
+          min-width: 0;
+        }
+
+        figcaption {
+          padding-left: 4px;
+          padding-right: 4px;
         }
 
         .bibtex {

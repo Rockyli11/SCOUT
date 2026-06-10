@@ -8,23 +8,26 @@
       name="description"
       content="Project page for Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense."
     >
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
     <style>
       :root {
         --bg: #ffffff;
-        --surface: #fafafa;
-        --ink: #111111;
-        --muted: #555555;
-        --soft: #767676;
-        --line: #e4e4e4;
-        --line-strong: #d4d9d8;
-        --accent: #0f766e;
-        --accent-soft: #eef8f7;
-        --highlight: #f2f7f7;
-        --code-bg: #f7f7f7;
-        --radius: 8px;
-        --content: 1120px;
-        --text: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        --display: Georgia, "Times New Roman", Times, serif;
+        --section-bg: #f5f5f5;
+        --ink: #1f1f1f;
+        --muted: #4a4a4a;
+        --soft: #6b6b6b;
+        --line: #dbdbdb;
+        --line-soft: #eeeeee;
+        --accent: #3273dc;
+        --accent-soft: #eef5ff;
+        --highlight: #f0f8f7;
+        --code-bg: #f5f5f5;
+        --content: 960px;
+        --wide: 1180px;
+        --measure: 780px;
+        --text: "Noto Sans", Arial, sans-serif;
+        --display: "Google Sans", "Noto Sans", Arial, sans-serif;
+        --serif: "Castoro", Georgia, serif;
         --mono: "SFMono-Regular", SFMono-Regular, Consolas, "Liberation Mono",
           Menlo, monospace;
       }
@@ -42,7 +45,9 @@
         background: var(--bg);
         color: var(--ink);
         font-family: var(--text);
-        line-height: 1.6;
+        font-size: 16px;
+        line-height: 1.55;
+        text-rendering: optimizeLegibility;
       }
 
       img {
@@ -56,70 +61,55 @@
       }
 
       .wrap {
-        width: min(var(--content), calc(100% - 32px));
+        width: min(var(--content), calc(100% - 40px));
         margin: 0 auto;
       }
 
       .topbar {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        background: rgba(255, 255, 255, 0.94);
-        border-bottom: 1px solid rgba(228, 228, 228, 0.9);
-        backdrop-filter: blur(12px);
+        background: var(--bg);
       }
 
       .nav {
-        min-height: 58px;
+        min-height: 52px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 24px;
+        justify-content: center;
+        gap: 28px;
       }
 
       .brand {
+        color: var(--ink);
         font-size: 0.95rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
+        font-weight: 500;
         text-decoration: none;
       }
 
       .nav-links {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 14px;
+        justify-content: center;
+        gap: 2px 18px;
       }
 
       .nav-links a {
-        color: var(--muted);
-        font-size: 0.93rem;
+        color: #4a4a4a;
+        font-size: 0.95rem;
         text-decoration: none;
       }
 
       .nav-links a:hover,
-      .nav-links a:focus-visible,
-      .link-inline:hover,
-      .link-inline:focus-visible {
+      .nav-links a:focus-visible {
         color: var(--accent);
       }
 
       .hero {
-        padding: 72px 0 30px;
+        padding: 66px 0 28px;
       }
 
       .hero-inner {
-        max-width: 960px;
+        max-width: 980px;
         margin: 0 auto;
         text-align: center;
-      }
-
-      .venue {
-        margin: 0 0 18px;
-        color: var(--soft);
-        font-size: 0.88rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
       }
 
       h1,
@@ -131,44 +121,55 @@
 
       h1 {
         font-family: var(--display);
-        font-size: clamp(2.3rem, 5.2vw, 4.4rem);
+        font-size: clamp(2.2rem, 4.9vw, 4rem);
         font-weight: 700;
-        letter-spacing: -0.03em;
+        letter-spacing: 0;
         text-wrap: balance;
       }
 
       h2 {
         font-family: var(--display);
-        font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+        font-size: clamp(1.55rem, 2.35vw, 2rem);
         font-weight: 700;
-        letter-spacing: -0.025em;
+        letter-spacing: 0;
       }
 
       h3 {
-        font-size: 1rem;
+        font-size: 0.96rem;
         font-weight: 700;
       }
 
       .subtitle {
-        max-width: 760px;
-        margin: 18px auto 0;
+        max-width: 780px;
+        margin: 20px auto 0;
         color: var(--muted);
-        font-size: 1.08rem;
+        font-size: 1.18rem;
       }
 
       .authors {
-        margin-top: 24px;
+        margin-top: 20px;
         color: var(--muted);
-        font-size: 1rem;
+        font-size: 1.22rem;
+        line-height: 1.42;
       }
 
       .authors p {
-        margin: 8px 0;
+        margin: 7px 0;
       }
 
       .authors strong {
-        color: var(--ink);
-        font-weight: 600;
+        color: inherit;
+        font-weight: 400;
+      }
+
+      .authors a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .authors a:hover,
+      .authors a:focus-visible {
+        text-decoration: underline;
       }
 
       .resource-row {
@@ -176,34 +177,33 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
-        margin: 28px 0 0;
+        margin: 27px 0 0;
       }
 
       .chip {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        min-height: 38px;
-        padding: 0 14px;
-        border: 1px solid var(--line);
+        min-height: 40px;
+        padding: 0 17px;
+        border: 1px solid #363636;
         border-radius: 999px;
-        background: var(--surface);
-        color: var(--ink);
-        font-size: 0.94rem;
-        font-weight: 600;
+        background: #363636;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 500;
         text-decoration: none;
         transition:
-          border-color 160ms ease,
           background-color 160ms ease,
-          color 160ms ease,
+          border-color 160ms ease,
           transform 160ms ease;
       }
 
       .chip:hover,
       .chip:focus-visible {
-        border-color: var(--accent);
-        background: var(--accent-soft);
-        color: var(--accent);
+        border-color: #4a4a4a;
+        background: #4a4a4a;
+        color: #ffffff;
         transform: translateY(-1px);
       }
 
@@ -222,22 +222,23 @@
       }
 
       .section-anchor {
-        border-top: 1px solid var(--line);
+        border-top: 0;
       }
 
       section {
-        padding: 58px 0;
+        padding: 48px 0;
       }
 
       .section-head {
-        max-width: 720px;
-        margin-bottom: 24px;
+        max-width: var(--measure);
+        margin: 0 auto 24px;
+        text-align: center;
       }
 
       .kicker {
-        margin: 0 0 10px;
+        margin: 0 0 6px;
         color: var(--soft);
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -255,39 +256,35 @@
       }
 
       .lede {
-        margin: 14px 0 0;
+        margin: 12px auto 0;
         color: var(--muted);
+        font-size: 1.05rem;
       }
 
       .paper-strip {
-        padding: 18px 0 52px;
+        padding: 20px 0 54px;
         border-top: 0;
+      }
+
+      .paper-strip .wrap {
+        width: min(var(--wide), calc(100% - 40px));
       }
 
       .main-figure,
       .figure-plate,
       .table-card,
       .bibtex-card {
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
         background: #ffffff;
       }
 
       .main-figure {
-        border-color: var(--line-strong);
-        padding: 14px;
-        box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
+        padding: 0;
       }
 
       .main-figure img,
       .figure-plate img {
-        border: 1px solid var(--line);
-        border-radius: calc(var(--radius) - 2px);
+        border: 1px solid var(--line-soft);
         background: #ffffff;
-      }
-
-      .main-figure img {
-        border-color: #dce4e2;
       }
 
       .main-figure,
@@ -305,10 +302,10 @@
       }
 
       figcaption {
-        padding: 10px 2px 0;
+        padding: 11px 2px 0;
         border-top: 0;
         background: #ffffff;
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         line-height: 1.5;
       }
 
@@ -319,11 +316,12 @@
       }
 
       .news-list {
-        margin: 0;
+        margin: 0 auto;
         padding: 0;
         list-style: none;
         display: grid;
-        gap: 10px;
+        gap: 0;
+        max-width: var(--measure);
       }
 
       .news-list li {
@@ -331,13 +329,12 @@
         grid-template-columns: 108px 1fr;
         gap: 12px;
         align-items: start;
-        padding-bottom: 10px;
-        border-bottom: 1px solid var(--line);
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
       }
 
       .news-list li:last-child {
-        padding-bottom: 0;
-        border-bottom: 0;
+        border-bottom: 1px solid var(--line);
       }
 
       .news-date {
@@ -347,13 +344,33 @@
 
       .two-col {
         display: grid;
-        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-        gap: 28px;
+        grid-template-columns: minmax(220px, 0.78fr) minmax(0, 1.22fr);
+        gap: 44px;
         align-items: start;
+      }
+
+      .two-col > div:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .two-col > .body-copy {
+        grid-column: 1 / -1;
+        max-width: var(--measure);
+        margin: 0 auto;
       }
 
       .body-copy p {
         margin: 0 0 14px;
+      }
+
+      .body-copy,
+      .method-copy,
+      .data-layout {
+        color: #222222;
+      }
+
+      .body-copy {
+        text-align: justify;
       }
 
       .body-copy p:last-child {
@@ -378,38 +395,41 @@
 
       .figure-stack {
         display: grid;
-        gap: 22px;
+        gap: 26px;
       }
 
       .figure-plate {
-        padding: 12px;
+        padding-top: 0;
       }
 
       .method-copy {
-        max-width: 900px;
+        max-width: var(--measure);
+        margin: 0 auto;
+        text-align: justify;
       }
 
       .method-copy p {
-        max-width: 760px;
+        max-width: var(--measure);
       }
 
       .result-block {
         display: grid;
-        gap: 18px;
-        margin-top: 28px;
+        gap: 26px;
+        margin-top: 0;
       }
 
       .table-card {
-        padding: 16px;
+        padding-top: 0;
       }
 
       .table-head {
         display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
+        justify-content: center;
         align-items: baseline;
         gap: 10px;
         margin-bottom: 12px;
+        text-align: center;
       }
 
       .table-head p,
@@ -419,7 +439,7 @@
 
       .table-note {
         color: var(--muted);
-        font-size: 0.92rem;
+        font-size: 0.9rem;
       }
 
       .table-scroll {
@@ -431,12 +451,14 @@
         width: 100%;
         border-collapse: collapse;
         min-width: 620px;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
       }
 
       th,
       td {
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--line);
+        padding: 9px 10px;
+        border-bottom: 1px solid var(--line-soft);
         text-align: right;
         vertical-align: middle;
         white-space: nowrap;
@@ -450,10 +472,11 @@
 
       thead th {
         color: var(--soft);
-        font-size: 0.84rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
+        border-bottom-color: var(--line);
       }
 
       tbody tr:last-child td {
@@ -475,14 +498,14 @@
       }
 
       .method-figure {
-        margin-top: 26px;
+        margin-top: 30px;
       }
 
       .results-layout,
       .data-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 28px;
+        grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+        gap: 34px;
         align-items: start;
       }
 
@@ -491,7 +514,7 @@
       }
 
       .result-hero {
-        margin: 6px 0 28px;
+        margin: 6px 0 34px;
       }
 
       .bibtex-card {
@@ -508,11 +531,34 @@
         overflow-x: auto;
       }
 
+      .is-light {
+        background: var(--section-bg);
+      }
+
       .footer {
-        padding: 26px 0 42px;
-        color: var(--soft);
+        padding: 48px 0;
+        background: #fafafa;
+        color: var(--muted);
         font-size: 0.92rem;
-        border-top: 1px solid var(--line);
+      }
+
+      .footer .wrap {
+        max-width: 760px;
+        text-align: center;
+      }
+
+      .footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .footer a:hover,
+      .footer a:focus-visible {
+        text-decoration: underline;
+      }
+
+      .footer p {
+        margin: 8px 0;
       }
 
       .sr-only {
@@ -537,10 +583,11 @@
         .results-layout,
         .data-layout {
           grid-template-columns: 1fr;
+          gap: 28px;
         }
 
         .hero {
-          padding-top: 58px;
+          padding-top: 52px;
         }
 
         .news-list li {
@@ -551,42 +598,38 @@
 
       @media (max-width: 640px) {
         .wrap {
-          width: min(var(--content), calc(100% - 20px));
+          width: min(var(--content), calc(100% - 24px));
+        }
+
+        .paper-strip .wrap {
+          width: min(var(--wide), calc(100% - 24px));
         }
 
         section {
-          padding: 42px 0;
+          padding: 40px 0;
         }
 
         .nav {
-          align-items: flex-start;
+          align-items: center;
           padding: 12px 0;
           flex-direction: column;
+          gap: 8px;
         }
 
         .nav-links {
           gap: 10px 14px;
-          justify-content: flex-start;
+          justify-content: center;
         }
 
         .chip {
           min-height: 36px;
           padding: 0 12px;
-          font-size: 0.9rem;
-        }
-
-        .table-card {
-          padding: 14px;
+          font-size: 0.88rem;
         }
 
         .bibtex {
           padding-left: 14px;
           padding-right: 14px;
-        }
-
-        .main-figure,
-        .figure-plate {
-          padding: 10px;
         }
       }
 
@@ -619,18 +662,17 @@
     <main id="top">
       <section class="hero">
         <div class="wrap hero-inner">
-          <p class="venue">Project Page</p>
           <h1>Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense</h1>
           <p class="subtitle">
             Prompt-injection defense should not commit every request to one fixed detector. SCOUT routes each input through a detector pool using predicted detector reliability and latency.
           </p>
           <div class="authors">
             <p>
-              <strong>Shuhao Zhang*</strong><sup>1</sup>,
+              <a href="https://sullivan07043.github.io/Git-Site-Sullivan/"><strong>Shuhao Zhang*</strong></a><sup>1</sup>,
               <strong>Jiarui Li*</strong><sup>2</sup>,
-              <strong>Qi Cao</strong><sup>1</sup>,
+              <a href="https://coder-qicao.github.io/"><strong>Qi Cao</strong></a><sup>1</sup>,
               <strong>Ruiyi Zhang</strong><sup>1</sup>,
-              <strong>Pengtao Xie</strong><sup>1</sup><sup>&dagger;</sup>
+              <a href="https://pengtaoxie.github.io/"><strong>Pengtao Xie</strong></a><sup>1</sup><sup>&dagger;</sup>
             </p>
             <p><sup>1</sup> UC San Diego &nbsp; <sup>2</sup> University of Illinois Urbana-Champaign</p>
             <p>* Equal contribution &nbsp; &dagger; Corresponding author: p1xie@ucsd.edu</p>
@@ -1103,8 +1145,14 @@
 
     <footer class="footer">
       <div class="wrap">
-        Static project page under <code>docs/</code>. No build step required.
+        <p>
+          This website is licensed under a
+          <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+            Creative Commons Attribution-ShareAlike 4.0 International License
+          </a>.
+        </p>
       </div>
     </footer>
+
   </body>
 </html>

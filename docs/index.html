@@ -285,6 +285,7 @@
       .figure-plate img {
         border: 1px solid var(--line-soft);
         background: #ffffff;
+        margin: 0 auto;
       }
 
       .main-figure,
@@ -402,6 +403,14 @@
         padding-top: 0;
       }
 
+      .figure-plate img {
+        max-width: 100%;
+      }
+
+      .method-figure img {
+        max-width: 960px;
+      }
+
       .method-copy {
         max-width: var(--measure);
         margin: 0 auto;
@@ -504,13 +513,23 @@
       .results-layout,
       .data-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
         gap: 34px;
         align-items: start;
       }
 
+      .results-layout {
+        grid-template-columns: 1fr;
+      }
+
       .data-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
         margin-top: 24px;
+      }
+
+      .result-figures {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 26px;
       }
 
       .result-hero {
@@ -581,7 +600,8 @@
       @media (max-width: 900px) {
         .two-col,
         .results-layout,
-        .data-layout {
+        .data-layout,
+        .result-figures {
           grid-template-columns: 1fr;
           gap: 28px;
         }
@@ -1074,7 +1094,7 @@
               </article>
             </div>
 
-            <div class="figure-stack">
+            <div class="figure-stack result-figures">
               <figure class="figure-plate">
                 <img src="static/images/fig_asr_bu_ablation.png" alt="Ablation curves varying predictor recipe, routing rule, and trust mixing on SCOUT-450.">
                 <figcaption>

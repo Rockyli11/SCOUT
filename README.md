@@ -2,10 +2,8 @@
 
 Detect prompt injection attacks using a multi-detector ensemble with learned routing.
 
-## Resources
-
-- Paper: [Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense](https://arxiv.org/abs/2605.30837)
-- Data and models: [sullivanUCSD on Hugging Face](https://huggingface.co/sullivanUCSD)
+[![Paper](https://img.shields.io/badge/arXiv-2605.30837-b31b1b?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2605.30837)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-data%20%26%20models-ffcc4d?logo=huggingface&logoColor=black)](https://huggingface.co/sullivanUCSD)
 
 ## Quick Start
 

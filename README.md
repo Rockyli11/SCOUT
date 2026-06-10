@@ -2,6 +2,11 @@
 
 Detect prompt injection attacks using a multi-detector ensemble with learned routing.
 
+## Resources
+
+- Paper: [Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense](https://arxiv.org/abs/2605.30837)
+- Data and models: [sullivanUCSD on Hugging Face](https://huggingface.co/sullivanUCSD)
+
 ## Quick Start
 
 Create and activate a local conda environment:

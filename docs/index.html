@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SCOUT: Pre-hoc Reasoning for Adaptive Detector Allocation</title>
+    <meta
+      name="description"
+      content="Project page for Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense."
+    >
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #fafafa;
+        --ink: #111111;
+        --muted: #555555;
+        --soft: #767676;
+        --line: #e4e4e4;
+        --line-strong: #d4d9d8;
+        --accent: #0f766e;
+        --accent-soft: #eef8f7;
+        --highlight: #f2f7f7;
+        --code-bg: #f7f7f7;
+        --radius: 8px;
+        --content: 1120px;
+        --text: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --display: Georgia, "Times New Roman", Times, serif;
+        --mono: "SFMono-Regular", SFMono-Regular, Consolas, "Liberation Mono",
+          Menlo, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--text);
+        line-height: 1.6;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .wrap {
+        width: min(var(--content), calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: rgba(255, 255, 255, 0.94);
+        border-bottom: 1px solid rgba(228, 228, 228, 0.9);
+        backdrop-filter: blur(12px);
+      }
+
+      .nav {
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand {
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+      }
+
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 14px;
+      }
+
+      .nav-links a {
+        color: var(--muted);
+        font-size: 0.93rem;
+        text-decoration: none;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus-visible,
+      .link-inline:hover,
+      .link-inline:focus-visible {
+        color: var(--accent);
+      }
+
+      .hero {
+        padding: 72px 0 30px;
+      }
+
+      .hero-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .venue {
+        margin: 0 0 18px;
+        color: var(--soft);
+        font-size: 0.88rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.14;
+      }
+
+      h1 {
+        font-family: var(--display);
+        font-size: clamp(2.3rem, 5.2vw, 4.4rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+      }
+
+      h2 {
+        font-family: var(--display);
+        font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        max-width: 760px;
+        margin: 18px auto 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+
+      .authors {
+        margin-top: 24px;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .authors p {
+        margin: 8px 0;
+      }
+
+      .authors strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .resource-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin: 28px 0 0;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 0.94rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition:
+          border-color 160ms ease,
+          background-color 160ms ease,
+          color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .chip:hover,
+      .chip:focus-visible {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--accent);
+        transform: translateY(-1px);
+      }
+
+      .chip svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+        flex: 0 0 auto;
+      }
+
+      .chip img {
+        width: 18px;
+        height: 17px;
+        flex: 0 0 auto;
+        object-fit: contain;
+      }
+
+      .section-anchor {
+        border-top: 1px solid var(--line);
+      }
+
+      section {
+        padding: 58px 0;
+      }
+
+      .section-head {
+        max-width: 720px;
+        margin-bottom: 24px;
+      }
+
+      .kicker {
+        margin: 0 0 10px;
+        color: var(--soft);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .lede,
+      .body-copy,
+      .caption,
+      .news-list,
+      .data-list,
+      td,
+      th,
+      .bibtex {
+        font-size: 0.98rem;
+      }
+
+      .lede {
+        margin: 14px 0 0;
+        color: var(--muted);
+      }
+
+      .paper-strip {
+        padding: 18px 0 52px;
+        border-top: 0;
+      }
+
+      .main-figure,
+      .figure-plate,
+      .table-card,
+      .bibtex-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #ffffff;
+      }
+
+      .main-figure {
+        border-color: var(--line-strong);
+        padding: 14px;
+        box-shadow: 0 18px 42px rgba(17, 17, 17, 0.06);
+      }
+
+      .main-figure img,
+      .figure-plate img {
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 2px);
+        background: #ffffff;
+      }
+
+      .main-figure img {
+        border-color: #dce4e2;
+      }
+
+      .main-figure,
+      .figure-plate {
+        overflow: hidden;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      figcaption,
+      .caption {
+        color: var(--muted);
+      }
+
+      figcaption {
+        padding: 10px 2px 0;
+        border-top: 0;
+        background: #ffffff;
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      .main-figure figcaption {
+        max-width: 880px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .news-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+
+      .news-list li {
+        display: grid;
+        grid-template-columns: 108px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .news-list li:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .news-date {
+        color: var(--soft);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+        gap: 28px;
+        align-items: start;
+      }
+
+      .body-copy p {
+        margin: 0 0 14px;
+      }
+
+      .body-copy p:last-child {
+        margin-bottom: 0;
+      }
+
+      .contrib-list,
+      .data-list {
+        margin: 18px 0 0;
+        padding-left: 20px;
+        color: var(--muted);
+      }
+
+      .contrib-list li,
+      .data-list li {
+        margin-bottom: 8px;
+      }
+
+      .data-list strong {
+        color: var(--ink);
+      }
+
+      .figure-stack {
+        display: grid;
+        gap: 22px;
+      }
+
+      .figure-plate {
+        padding: 12px;
+      }
+
+      .method-copy {
+        max-width: 900px;
+      }
+
+      .method-copy p {
+        max-width: 760px;
+      }
+
+      .result-block {
+        display: grid;
+        gap: 18px;
+        margin-top: 28px;
+      }
+
+      .table-card {
+        padding: 16px;
+      }
+
+      .table-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .table-head p,
+      .table-note {
+        margin: 0;
+      }
+
+      .table-note {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 620px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: right;
+        vertical-align: middle;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+
+      thead th {
+        color: var(--soft);
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      tbody tr.group-divider td {
+        border-top: 1px solid var(--line);
+      }
+
+      .row-highlight {
+        background: var(--highlight);
+      }
+
+      .cell-highlight {
+        background: var(--accent-soft);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .method-figure {
+        margin-top: 26px;
+      }
+
+      .results-layout,
+      .data-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 28px;
+        align-items: start;
+      }
+
+      .data-layout {
+        margin-top: 24px;
+      }
+
+      .result-hero {
+        margin: 6px 0 28px;
+      }
+
+      .bibtex-card {
+        overflow: hidden;
+      }
+
+      .bibtex {
+        margin: 0;
+        padding: 18px 20px;
+        background: var(--code-bg);
+        color: #1d1d1d;
+        font-family: var(--mono);
+        line-height: 1.55;
+        overflow-x: auto;
+      }
+
+      .footer {
+        padding: 26px 0 42px;
+        color: var(--soft);
+        font-size: 0.92rem;
+        border-top: 1px solid var(--line);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 900px) {
+        .two-col,
+        .results-layout,
+        .data-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding-top: 58px;
+        }
+
+        .news-list li {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .wrap {
+          width: min(var(--content), calc(100% - 20px));
+        }
+
+        section {
+          padding: 42px 0;
+        }
+
+        .nav {
+          align-items: flex-start;
+          padding: 12px 0;
+          flex-direction: column;
+        }
+
+        .nav-links {
+          gap: 10px 14px;
+          justify-content: flex-start;
+        }
+
+        .chip {
+          min-height: 36px;
+          padding: 0 12px;
+          font-size: 0.9rem;
+        }
+
+        .table-card {
+          padding: 14px;
+        }
+
+        .bibtex {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .main-figure,
+        .figure-plate {
+          padding: 10px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        .chip {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap nav">
+        <a class="brand" href="#top">SCOUT</a>
+        <nav class="nav-links" aria-label="Section navigation">
+          <a href="#news">News</a>
+          <a href="#overview">Overview</a>
+          <a href="#method">Method</a>
+          <a href="#results">Results</a>
+          <a href="#data">Data</a>
+          <a href="#bibtex">BibTeX</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap hero-inner">
+          <p class="venue">Project Page</p>
+          <h1>Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense</h1>
+          <p class="subtitle">
+            Prompt-injection defense should not commit every request to one fixed detector. SCOUT routes each input through a detector pool using predicted detector reliability and latency.
+          </p>
+          <div class="authors">
+            <p>
+              <strong>Shuhao Zhang*</strong><sup>1</sup>,
+              <strong>Jiarui Li*</strong><sup>2</sup>,
+              <strong>Qi Cao</strong><sup>1</sup>,
+              <strong>Ruiyi Zhang</strong><sup>1</sup>,
+              <strong>Pengtao Xie</strong><sup>1</sup><sup>&dagger;</sup>
+            </p>
+            <p><sup>1</sup> UC San Diego &nbsp; <sup>2</sup> University of Illinois Urbana-Champaign</p>
+            <p>* Equal contribution &nbsp; &dagger; Corresponding author: p1xie@ucsd.edu</p>
+          </div>
+          <div class="resource-row" aria-label="Project resources">
+            <a class="chip" href="https://arxiv.org/abs/2605.30837">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l4 4v16H6V2zm7 1.5V7h3.5L13 3.5zM8.5 11h7v1.5h-7V11zm0 3h7v1.5h-7V14zm0 3h5v1.5h-5V17z"/></svg>
+              <span>Paper</span>
+            </a>
+            <a class="chip" href="https://github.com/Rockyli11/SCOUT">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.2c-3.34.73-4.04-1.42-4.04-1.42-.55-1.38-1.33-1.75-1.33-1.75-1.08-.74.08-.73.08-.73 1.2.08 1.83 1.22 1.83 1.22 1.06 1.82 2.79 1.29 3.48.99.11-.77.42-1.29.76-1.59-2.67-.31-5.47-1.34-5.47-5.95 0-1.31.47-2.38 1.22-3.22-.12-.3-.53-1.53.12-3.19 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.29-1.23 3.29-1.23.66 1.66.25 2.89.12 3.19.76.84 1.22 1.91 1.22 3.22 0 4.62-2.81 5.63-5.49 5.94.43.37.81 1.09.81 2.2v3.25c0 .32.21.69.82.57A12 12 0 0 0 12 .5z"/></svg>
+              <span>Code</span>
+            </a>
+            <a class="chip" href="https://huggingface.co/collections/sullivanUCSD/scout-6a288b592ba1efd9d12897d7">
+              <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="" aria-hidden="true">
+              <span>HF Models</span>
+            </a>
+            <a class="chip" href="https://huggingface.co/datasets/sullivanUCSD/SCOUT-450">
+              <img src="https://huggingface.co/front/assets/huggingface_logo-noborder.svg" alt="" aria-hidden="true">
+              <span>HF Data</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="paper-strip" aria-labelledby="main-figure-heading">
+        <div class="wrap">
+          <h2 id="main-figure-heading" class="sr-only">Main figure</h2>
+          <figure class="main-figure">
+            <img src="static/images/fig_main_v6.png" alt="SCOUT overview showing detector error patterns, per-input routing, and detector invocation share across thresholds.">
+            <figcaption>
+              SCOUT allocates detectors per input. The router uses detector fingerprints to estimate which light detectors to trust and when to escalate to an LLM judge.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="news" class="section-anchor">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="kicker">News</p>
+            <h2>Updates</h2>
+          </div>
+          <ul class="news-list">
+            <li>
+              <span class="news-date">2026-05-29</span>
+              <span>Project page, arXiv paper, code, and Hugging Face models and data are online.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="overview" class="section-anchor">
+        <div class="wrap two-col">
+          <div>
+            <div class="section-head">
+              <p class="kicker">Abstract / Overview</p>
+              <h2>Detector allocation instead of detector commitment</h2>
+              <p class="lede">
+                Prompt-injection detectors are heterogeneous: each is fast or accurate on a different slice of requests, and none is best everywhere.
+              </p>
+            </div>
+          </div>
+          <div class="body-copy">
+            <p>
+              SCOUT treats defense as a routing problem. For each input, it predicts how each detector is likely to behave, runs a predicted-reliable light pool, and escalates to an LLM judge only when the vote remains uncertain.
+            </p>
+            <p>
+              The system exposes one threshold, <span aria-label="tau">tau</span>, to control the safety-latency trade-off. Raising the threshold increases judge usage; lowering it trusts the light pool more often.
+            </p>
+            <ul class="contrib-list">
+              <li>Per-input detector allocation instead of a fixed single-detector pipeline.</li>
+              <li>Fingerprint-based prediction of detector correctness and latency from similar past inputs.</li>
+              <li>One threshold for operating-point control across safety, benign utility, and wall-clock.</li>
+              <li>SCOUT-450 plus transfer results on BIPIA, IPI, and IHEval.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="method" class="section-anchor">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="kicker">Method</p>
+            <h2>Fingerprint, predict, route</h2>
+            <p class="lede">
+              SCOUT builds a behavioral fingerprint for each detector, predicts per-input reliability and latency, then decides whether the light pool is confident enough to answer.
+            </p>
+          </div>
+          <div class="body-copy method-copy">
+            <p>
+              A retrieved Anchor-400 neighborhood provides detector fingerprints for inputs that look similar to the current request. A small predictor reads those fingerprints and emits a correctness and latency estimate for each detector.
+            </p>
+            <p>
+              The router keeps only detectors predicted to be reliable, aggregates them with trust weights, and compares the vote confidence against the threshold. If the vote is not decisive, SCOUT escalates to the LLM judge.
+            </p>
+          </div>
+          <figure class="figure-plate method-figure">
+            <img src="static/images/scout_framework.png" alt="SCOUT framework showing fingerprint construction, detector outcome prediction, and uncertainty-aware triage.">
+            <figcaption>
+              SCOUT retrieves similar anchor examples, predicts detector behavior, and routes each request through a light-pool vote or judge escalation.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="results" class="section-anchor">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="kicker">Results</p>
+            <h2>SCOUT-450 and cross-benchmark transfer</h2>
+            <p class="lede">
+              On SCOUT-450, the headline operating point at tau = 0.875 reaches the lowest total ASR and the highest accuracy among the reported systems while using about 0.6x the total wall-clock of an always-on GPT-4o judge.
+            </p>
+          </div>
+
+          <figure class="figure-plate result-hero">
+            <img src="static/images/fig_lat_quality.png" alt="Wall-clock versus quality frontier on SCOUT-450 across the SCOUT threshold sweep.">
+            <figcaption>
+              SCOUT-450 latency-quality frontier. Increasing tau moves the system toward lower ASR and higher accuracy at higher wall-clock.
+            </figcaption>
+          </figure>
+
+          <div class="results-layout">
+            <div class="result-block">
+              <article class="table-card">
+                <div class="table-head">
+                  <div>
+                    <h3>SCOUT-450 Main Result</h3>
+                    <p class="table-note">Lower ASR is better. Higher BU and accuracy are better.</p>
+                  </div>
+                </div>
+                <div class="table-scroll">
+                  <table aria-label="SCOUT-450 main result table">
+                    <thead>
+                      <tr>
+                        <th>Method</th>
+                        <th>Total ASR</th>
+                        <th>Total BU</th>
+                        <th>Total Lat</th>
+                        <th>Acc</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Rule-based</td>
+                        <td>.651</td>
+                        <td>.733</td>
+                        <td>0.1</td>
+                        <td>.516</td>
+                      </tr>
+                      <tr>
+                        <td>DeBERTa</td>
+                        <td>.231</td>
+                        <td>.672</td>
+                        <td>9</td>
+                        <td>.727</td>
+                      </tr>
+                      <tr>
+                        <td>PIGuard</td>
+                        <td>.098</td>
+                        <td>.364</td>
+                        <td>203</td>
+                        <td>.669</td>
+                      </tr>
+                      <tr>
+                        <td>GPT-4o</td>
+                        <td>.118</td>
+                        <td>.979</td>
+                        <td>656</td>
+                        <td>.924</td>
+                      </tr>
+                      <tr>
+                        <td>SCOUT (tau = 0.55)</td>
+                        <td>.106</td>
+                        <td>.795</td>
+                        <td>87</td>
+                        <td>.851</td>
+                      </tr>
+                      <tr>
+                        <td>SCOUT (tau = 0.75)</td>
+                        <td>.075</td>
+                        <td>.872</td>
+                        <td>222</td>
+                        <td>.902</td>
+                      </tr>
+                      <tr class="row-highlight">
+                        <td>SCOUT (tau = 0.875)</td>
+                        <td class="cell-highlight">.063</td>
+                        <td>.928</td>
+                        <td class="cell-highlight">395</td>
+                        <td class="cell-highlight">.933</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+
+              <article class="table-card">
+                <div class="table-head">
+                  <div>
+                    <h3>Ablation</h3>
+                    <p class="table-note">Allocation and predictor quality both matter.</p>
+                  </div>
+                </div>
+                <div class="table-scroll">
+                  <table aria-label="SCOUT ablation table">
+                    <thead>
+                      <tr>
+                        <th>Method</th>
+                        <th>Acc</th>
+                        <th>ASR</th>
+                        <th>BU</th>
+                        <th>Total Lat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>KNN predictor</td>
+                        <td>.909</td>
+                        <td>.110</td>
+                        <td>.933</td>
+                        <td>412.1</td>
+                      </tr>
+                      <tr>
+                        <td>MLP predictor</td>
+                        <td>.898</td>
+                        <td>.086</td>
+                        <td>.877</td>
+                        <td>339.1</td>
+                      </tr>
+                      <tr>
+                        <td>Qwen3-4B 5-shot CoT</td>
+                        <td>.907</td>
+                        <td>.110</td>
+                        <td>.928</td>
+                        <td>388.2</td>
+                      </tr>
+                      <tr>
+                        <td>SFT-CoT</td>
+                        <td>.904</td>
+                        <td>.098</td>
+                        <td>.908</td>
+                        <td>333.6</td>
+                      </tr>
+                      <tr>
+                        <td>Always judge</td>
+                        <td>.924</td>
+                        <td>.118</td>
+                        <td>.979</td>
+                        <td>655.5</td>
+                      </tr>
+                      <tr>
+                        <td>No-predictor cascade</td>
+                        <td>.920</td>
+                        <td>.090</td>
+                        <td>.933</td>
+                        <td>462.6</td>
+                      </tr>
+                      <tr>
+                        <td>Uniform-trust cascade</td>
+                        <td>.927</td>
+                        <td>.078</td>
+                        <td>.933</td>
+                        <td>515.7</td>
+                      </tr>
+                      <tr class="row-highlight">
+                        <td>SCOUT</td>
+                        <td class="cell-highlight">.933</td>
+                        <td class="cell-highlight">.063</td>
+                        <td>.928</td>
+                        <td class="cell-highlight">395.1</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="table-note">SCOUT gains come from both the routing rule and a predictor that can rank detector reliability per input.</p>
+              </article>
+
+              <article class="table-card">
+                <div class="table-head">
+                  <div>
+                    <h3>Cross-Benchmark Transfer</h3>
+                    <p class="table-note">SCOUT runs unchanged after SCOUT-450 model selection.</p>
+                  </div>
+                </div>
+                <div class="table-scroll">
+                  <table aria-label="SCOUT cross-benchmark transfer table">
+                    <thead>
+                      <tr>
+                        <th>Setting</th>
+                        <th>Method</th>
+                        <th>Acc</th>
+                        <th>ASR</th>
+                        <th>BU</th>
+                        <th>Total Lat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="group-divider">
+                        <td>BIPIA/4o</td>
+                        <td>Always judge</td>
+                        <td>.894</td>
+                        <td>.044</td>
+                        <td>.832</td>
+                        <td>1654</td>
+                      </tr>
+                      <tr>
+                        <td>BIPIA/4o</td>
+                        <td>SCOUT</td>
+                        <td class="cell-highlight">.971</td>
+                        <td class="cell-highlight">.026</td>
+                        <td class="cell-highlight">.968</td>
+                        <td class="cell-highlight">309</td>
+                      </tr>
+                      <tr class="group-divider">
+                        <td>BIPIA/5.1</td>
+                        <td>Always judge</td>
+                        <td>.873</td>
+                        <td>.236</td>
+                        <td>.982</td>
+                        <td>1586</td>
+                      </tr>
+                      <tr>
+                        <td>BIPIA/5.1</td>
+                        <td>SCOUT</td>
+                        <td class="cell-highlight">.961</td>
+                        <td class="cell-highlight">.058</td>
+                        <td>.980</td>
+                        <td class="cell-highlight">433</td>
+                      </tr>
+                      <tr class="group-divider">
+                        <td>IPI/4o</td>
+                        <td>Always judge</td>
+                        <td>.903</td>
+                        <td>.144</td>
+                        <td>.950</td>
+                        <td>1504</td>
+                      </tr>
+                      <tr>
+                        <td>IPI/4o</td>
+                        <td>SCOUT</td>
+                        <td>.901</td>
+                        <td class="cell-highlight">.128</td>
+                        <td>.930</td>
+                        <td class="cell-highlight">915</td>
+                      </tr>
+                      <tr class="group-divider">
+                        <td>IPI/5.1</td>
+                        <td>Always judge</td>
+                        <td>.940</td>
+                        <td>.120</td>
+                        <td>1.000</td>
+                        <td>1651</td>
+                      </tr>
+                      <tr>
+                        <td>IPI/5.1</td>
+                        <td>SCOUT</td>
+                        <td class="cell-highlight">.944</td>
+                        <td class="cell-highlight">.086</td>
+                        <td>.974</td>
+                        <td class="cell-highlight">1147</td>
+                      </tr>
+                      <tr class="group-divider">
+                        <td>IHEval/4o</td>
+                        <td>Always judge</td>
+                        <td>.809</td>
+                        <td>.008</td>
+                        <td>.626</td>
+                        <td>1476</td>
+                      </tr>
+                      <tr>
+                        <td>IHEval/4o</td>
+                        <td>SCOUT</td>
+                        <td class="cell-highlight">.844</td>
+                        <td>.138</td>
+                        <td class="cell-highlight">.826</td>
+                        <td class="cell-highlight">524</td>
+                      </tr>
+                      <tr class="group-divider">
+                        <td>IHEval/5.1</td>
+                        <td>Always judge</td>
+                        <td>.881</td>
+                        <td>.052</td>
+                        <td>.814</td>
+                        <td>1540</td>
+                      </tr>
+                      <tr>
+                        <td>IHEval/5.1</td>
+                        <td>SCOUT</td>
+                        <td>.861</td>
+                        <td class="cell-highlight">.042</td>
+                        <td>.764</td>
+                        <td class="cell-highlight">1242</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            </div>
+
+            <div class="figure-stack">
+              <figure class="figure-plate">
+                <img src="static/images/fig_asr_bu_ablation.png" alt="Ablation curves varying predictor recipe, routing rule, and trust mixing on SCOUT-450.">
+                <figcaption>
+                  Ablation curves. The best frontier appears only when SCOUT combines per-input prediction with trust-aware routing.
+                </figcaption>
+              </figure>
+              <figure class="figure-plate">
+                <img src="static/images/fig_h2_lat.png" alt="Cross-benchmark latency-quality plots for BIPIA, IPI, and IHEval.">
+                <figcaption>
+                  Transfer without retraining. The same SCOUT configuration reduces wall-clock on BIPIA, IPI, and IHEval.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="data" class="section-anchor">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="kicker">Data</p>
+            <h2>SCOUT-30K, Anchor-400, and SCOUT-450</h2>
+            <p class="lede">
+              SCOUT uses separate data roles for detector training, predictor supervision, fingerprint retrieval, and evaluation.
+            </p>
+          </div>
+          <div class="data-layout">
+            <div>
+              <ul class="data-list">
+                <li><strong>SCOUT-30K:</strong> 29,551 hindsight-distilled sample-detector examples for predictor supervision.</li>
+                <li><strong>Anchor-400:</strong> 400 examples used for kNN retrieval and detector trust priors.</li>
+                <li><strong>SCOUT-450:</strong> 450 evaluation samples, with 255 attacks and 195 benign cases, enriched for harder agent-facing injections.</li>
+              </ul>
+              <p class="lede">
+                The page focuses on the evaluation benchmark, but the routing system depends on keeping these roles disjoint.
+              </p>
+            </div>
+            <figure class="figure-plate">
+              <img src="static/images/fig_dataset_composition.png" alt="Dataset composition across SCOUT-30K, Anchor-400, and SCOUT-450.">
+              <figcaption>
+                Composition of the released SCOUT splits across attack and benign categories.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="bibtex" class="section-anchor">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="kicker">BibTeX</p>
+            <h2>Citation</h2>
+          </div>
+          <div class="bibtex-card">
+            <pre class="bibtex"><code>@misc{zhang2026scout,
+  title = {Send a SCOUT First: Pre-hoc Reasoning for Adaptive Detector Allocation in Prompt-Injection Defense},
+  author = {Zhang, Shuhao and Li, Jiarui and Cao, Qi and Zhang, Ruiyi and Xie, Pengtao},
+  year = {2026},
+  eprint = {2605.30837},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CR},
+  url = {https://arxiv.org/abs/2605.30837}
+}</code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        Static project page under <code>docs/</code>. No build step required.
+      </div>
+    </footer>
+  </body>
+</html>

@@ -425,10 +425,6 @@
         padding: 0;
       }
 
-      .method-figure img {
-        max-width: 960px;
-      }
-
       .method-copy {
         max-width: var(--measure);
         margin: 0 auto;
@@ -551,7 +547,15 @@
       }
 
       .method-figure {
+        position: relative;
+        left: 50%;
+        width: min(1129px, calc(100vw - 40px));
         margin-top: 30px;
+        transform: translateX(-50%);
+      }
+
+      .method-figure figcaption {
+        max-width: 960px;
       }
 
       .results-layout,
@@ -705,6 +709,12 @@
           width: 100%;
           max-width: calc(100vw - 24px);
           padding: 6px;
+        }
+
+        .method-figure {
+          left: auto;
+          width: 100%;
+          transform: none;
         }
 
         .hero-inner,
